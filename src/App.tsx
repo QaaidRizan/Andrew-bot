@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
 import { ThemeToggle } from './components/ThemeToggle';
-import { Bot } from 'lucide-react';
 import { getAIResponse } from './openaiClient';
 
 interface Message {
@@ -12,15 +11,10 @@ interface Message {
   timestamp: Date;
 }
 
-function App() {
-  const [messages, setMessages] = useState<Message[]>([]); // No localStorage, always fresh messages
+const App: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
+  const [isDark, setIsDark] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,8 +27,21 @@ function App() {
   }, [messages]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [isDark]);
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDark(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  const handleToggle = () => {
+    setIsDark((prev) => {
+      const newTheme = !prev;
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', newTheme);
+      return newTheme;
+    });
+  };
 
   const simulateAIResponse = async (userMessage: string) => {
     setIsTyping(true);
@@ -69,24 +76,22 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col`}>
+    <div className={`min-h-screen flex flex-col ${isDark ? 'bg-black text-white' : 'bg-white text-black'}`}>
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 fixed top-0 w-full z-10">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center space-x-3">
-            <img
-              src="https://w0.peakpx.com/wallpaper/78/57/HD-wallpaper-andrew-tate-s-top-5-most-controversial-statements.jpg"
-              alt="Bot"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <h1 className="text-xl font-bold dark:text-white">Andrew Tate AI Assistant</h1>
-          </div>
-          <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
+      <header className="p-4 flex justify-between items-center bg-gray-100 dark:bg-gray-900">
+        <div className="flex items-center space-x-3">
+          <img
+            src="https://w0.peakpx.com/wallpaper/78/57/HD-wallpaper-andrew-tate-s-top-5-most-controversial-statements.jpg"
+            alt="Bot"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <h1 className="text-xl font-bold dark:text-white">Andrew Tate AI Assistant</h1>
         </div>
+        <ThemeToggle isDark={isDark} onToggle={handleToggle} />
       </header>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto pt-20 pb-24">
+      <div className="flex-1 overflow-y-auto pt-4 pb-4">
         <div className="max-w-4xl mx-auto px-4">
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
@@ -96,13 +101,14 @@ function App() {
       </div>
 
       {/* Input Footer */}
-      <footer className="fixed bottom-0 left-0 right-0">
+      <footer className="p-4 bg-gray-100 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto">
           <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
         </div>
+        <p className="text-center">&copy; 2025 My App. All rights reserved.</p>
       </footer>
     </div>
   );
-}
+};
 
 export default App;
