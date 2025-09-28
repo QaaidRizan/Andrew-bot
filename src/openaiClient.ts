@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({
-  apiKey: import.meta.env.API
+  apiKey: import.meta.env.VITE_API
 });
 
 export const getAIResponse = async (userMessage: string): Promise<string> => {
