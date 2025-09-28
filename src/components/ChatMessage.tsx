@@ -20,7 +20,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   return (
     <div className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} max-w-[80%] group`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} max-w-[85%] group`}>
         <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
           {isUser ? (
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -36,13 +36,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         </div>
         
         <div className="flex flex-col">
-          <div className={`relative px-4 py-2 rounded-lg ${
-            isUser ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
+          <div className={`relative px-4 py-3 rounded-2xl border shadow-sm ${
+            isUser ? 'bg-blue-600 text-white border-blue-500' : 'bg-white dark:bg-gray-800 dark:text-white border-gray-200 dark:border-gray-700'
           }`}>
-            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+            <p className="text-sm whitespace-pre-wrap leading-6">{message.text}</p>
             <button 
               onClick={copyMessage}
-              className="opacity-0 group-hover:opacity-100 absolute top-2 right-2 p-1 rounded hover:bg-black/10 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 absolute top-2 right-2 p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
               title="Copy message"
             >
               <Copy className="w-4 h-4" />
