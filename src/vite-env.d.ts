@@ -3,5 +3,5 @@
 import { Import } from "lucide-react";
 
 interface ImportMetaEnv {
-    readonly VITE_OPENAI_API_KEY: string;
+    readonly API: string;
   }
