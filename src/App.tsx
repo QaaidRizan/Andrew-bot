@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { ChatMessage } from './components/ChatMessage';
 import { ThemeToggle } from './components/ThemeToggle';
 import { getAIResponse } from './openaiClient';
 import { Send } from 'lucide-react';
+// import Login from './components/Login';
 
 interface Message {
   id: string;
@@ -21,6 +23,9 @@ const App: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { isSignedIn } = useAuth();
+  const { openSignIn } = useClerk();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -120,6 +125,10 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = (text: string) => {
+    if (!isSignedIn) {
+      openSignIn({});
+      return;
+    }
     storeChat(text); // Store user message
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -133,6 +142,10 @@ const App: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSignedIn) {
+      openSignIn({});
+      return;
+    }
     if (inputMessage.trim()) {
       handleSendMessage(inputMessage.trim());
       setInputMessage('');
@@ -142,6 +155,10 @@ const App: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      if (!isSignedIn) {
+        openSignIn({});
+        return;
+      }
       if (inputMessage.trim()) {
         handleSendMessage(inputMessage.trim());
         setInputMessage('');
@@ -170,20 +187,36 @@ const App: React.FC = () => {
     <div className={`min-h-screen flex flex-col ${isDark ? 'bg-black text-white' : 'bg-white text-black'}`}>
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-black/60 backdrop-blur px-4">
-        <div className="max-w-3xl mx-auto h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="relative w-full max-w-6xl mx-auto h-14 flex items-center">
+          {/* Left side: Icon and Title */}
+          <div className="flex items-center gap-3 md:absolute md:left-0 md:[left:-100px]">
             <img
               src="https://w0.peakpx.com/wallpaper/78/57/HD-wallpaper-andrew-tate-s-top-5-most-controversial-statements.jpg"
               alt="Bot"
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-8 h-8 rounded-full object-cover md:-ml-20"
             />
             <h1 className="text-sm font-semibold opacity-90">Andrew Tate AI Assistant</h1>
           </div>
-          <ThemeToggle isDark={isDark} onToggle={handleToggle} />
+          {/* Right side: ThemeToggle and Auth Buttons */}
+          <div className="ml-auto flex items-center gap-3 md:absolute md:right-0 md:[right:-180px]">
+            <ThemeToggle isDark={isDark} onToggle={handleToggle} />
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">Sign In</button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div className="flex items-center gap-2">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </SignedIn>
+          </div>
+          {/* Centered spacer for layout (desktop only) */}
+          <div className="hidden md:flex w-full justify-center"></div>
         </div>
       </header>
 
-      {/* Messages Container */}
+      {/* Messages Container (visible even when signed out; sending triggers sign-in) */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4">
           {messages.length === 0 ? (
